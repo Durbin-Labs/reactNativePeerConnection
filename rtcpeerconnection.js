@@ -2,10 +2,20 @@ var util = require('util');
 var SJJ = require('sdp-jingle-json');
 var WildEmitter = require('wildemitter');
 var cloneDeep = require('lodash.clonedeep');
+var WebRTC = require('react-native-webrtc');
+
+var {
+  RTCPeerConnection,
+  RTCIceCandidate,
+  RTCSessionDescription,
+  RTCView,
+  MediaStream,
+  MediaStreamTrack,
+  getUserMedia,
+} = WebRTC;
 
 function PeerConnection(config, constraints) {
     var self = this;
-    var item;
     WildEmitter.call(this);
 
     config = config || {};
@@ -13,98 +23,98 @@ function PeerConnection(config, constraints) {
 
     // make sure this only gets enabled in Google Chrome
     // EXPERIMENTAL FLAG, might get removed without notice
-    this.enableChromeNativeSimulcast = false;
-    if (constraints && constraints.optional && window.chrome &&
-            navigator.appVersion.match(/Chromium\//) === null) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.enableChromeNativeSimulcast) {
-                self.enableChromeNativeSimulcast = true;
-            }
-        });
-    }
+    // this.enableChromeNativeSimulcast = false;
+    // if (constraints && constraints.optional && window.chrome &&
+    //         navigator.appVersion.match(/Chromium\//) === null) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.enableChromeNativeSimulcast) {
+    //             self.enableChromeNativeSimulcast = true;
+    //         }
+    //     });
+    // }
 
     // EXPERIMENTAL FLAG, might get removed without notice
-    this.enableMultiStreamHacks = false;
-    if (constraints && constraints.optional && window.chrome) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.enableMultiStreamHacks) {
-                self.enableMultiStreamHacks = true;
-            }
-        });
-    }
+    // this.enableMultiStreamHacks = false;
+    // if (constraints && constraints.optional && window.chrome) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.enableMultiStreamHacks) {
+    //             self.enableMultiStreamHacks = true;
+    //         }
+    //     });
+    // }
     // EXPERIMENTAL FLAG, might get removed without notice
     this.restrictBandwidth = 0;
-    if (constraints && constraints.optional) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.andyetRestrictBandwidth) {
-                self.restrictBandwidth = constraint.andyetRestrictBandwidth;
-            }
-        });
-    }
+    // if (constraints && constraints.optional) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.andyetRestrictBandwidth) {
+    //             self.restrictBandwidth = constraint.andyetRestrictBandwidth;
+    //         }
+    //     });
+    // }
 
     // EXPERIMENTAL FLAG, might get removed without notice
     // bundle up ice candidates, only works for jingle mode
     // number > 0 is the delay to wait for additional candidates
     // ~20ms seems good
-    this.batchIceCandidates = 0;
-    if (constraints && constraints.optional) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.andyetBatchIce) {
-                self.batchIceCandidates = constraint.andyetBatchIce;
-            }
-        });
-    }
+    // this.batchIceCandidates = 0;
+    // if (constraints && constraints.optional) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.andyetBatchIce) {
+    //             self.batchIceCandidates = constraint.andyetBatchIce;
+    //         }
+    //     });
+    // }
     this.batchedIceCandidates = [];
 
     // EXPERIMENTAL FLAG, might get removed without notice
     // this attemps to strip out candidates with an already known foundation
     // and type -- i.e. those which are gathered via the same TURN server
     // but different transports (TURN udp, tcp and tls respectively)
-    if (constraints && constraints.optional && window.chrome) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.andyetFasterICE) {
-                self.eliminateDuplicateCandidates = constraint.andyetFasterICE;
-            }
-        });
-    }
+    // if (constraints && constraints.optional && window.chrome) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.andyetFasterICE) {
+    //             self.eliminateDuplicateCandidates = constraint.andyetFasterICE;
+    //         }
+    //     });
+    // }
     // EXPERIMENTAL FLAG, might get removed without notice
     // when using a server such as the jitsi videobridge we don't need to signal
     // our candidates
-    if (constraints && constraints.optional) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.andyetDontSignalCandidates) {
-                self.dontSignalCandidates = constraint.andyetDontSignalCandidates;
-            }
-        });
-    }
+    // if (constraints && constraints.optional) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.andyetDontSignalCandidates) {
+    //             self.dontSignalCandidates = constraint.andyetDontSignalCandidates;
+    //         }
+    //     });
+    // }
 
 
     // EXPERIMENTAL FLAG, might get removed without notice
-    this.assumeSetLocalSuccess = false;
-    if (constraints && constraints.optional) {
-        constraints.optional.forEach(function (constraint) {
-            if (constraint.andyetAssumeSetLocalSuccess) {
-                self.assumeSetLocalSuccess = constraint.andyetAssumeSetLocalSuccess;
-            }
-        });
-    }
+    // this.assumeSetLocalSuccess = false;
+    // if (constraints && constraints.optional) {
+    //     constraints.optional.forEach(function (constraint) {
+    //         if (constraint.andyetAssumeSetLocalSuccess) {
+    //             self.assumeSetLocalSuccess = constraint.andyetAssumeSetLocalSuccess;
+    //         }
+    //     });
+    // }
 
     // EXPERIMENTAL FLAG, might get removed without notice
     // working around https://bugzilla.mozilla.org/show_bug.cgi?id=1087551
     // pass in a timeout for this
-    if (window.navigator.mozGetUserMedia) {
-        if (constraints && constraints.optional) {
-            this.wtFirefox = 0;
-            constraints.optional.forEach(function (constraint) {
-                if (constraint.andyetFirefoxMakesMeSad) {
-                    self.wtFirefox = constraint.andyetFirefoxMakesMeSad;
-                    if (self.wtFirefox > 0) {
-                        self.firefoxcandidatebuffer = [];
-                    }
-                }
-            });
-        }
-    }
+    // if (window.navigator.mozGetUserMedia) {
+    //     if (constraints && constraints.optional) {
+    //         this.wtFirefox = 0;
+    //         constraints.optional.forEach(function (constraint) {
+    //             if (constraint.andyetFirefoxMakesMeSad) {
+    //                 self.wtFirefox = constraint.andyetFirefoxMakesMeSad;
+    //                 if (self.wtFirefox > 0) {
+    //                     self.firefoxcandidatebuffer = [];
+    //                 }
+    //             }
+    //         });
+    //     }
+    // }
 
 
     this.pc = new RTCPeerConnection(config, constraints);
@@ -174,6 +184,7 @@ function PeerConnection(config, constraints) {
     };
 
     // apply our config
+    var item;
     for (item in config) {
         this.config[item] = config[item];
     }

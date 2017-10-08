@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "lodash.clonedeep": "^4.3.2",
+    "react-native-webrtc": "^1.58.3",
     "sdp-jingle-json": "^3.0.0",
     "wildemitter": "1.x"
   },
@@ -46,10 +47,5 @@
       "safari/latest",
       "opera/18..latest"
     ]
-  },
-  "pre-commit": [
-    "lint",
-    "validate",
-    "test"
-  ]
+  }
 }
