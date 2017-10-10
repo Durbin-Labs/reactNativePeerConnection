@@ -19,7 +19,7 @@ function PeerConnection(config, constraints) {
     WildEmitter.call(this);
 
     config = config || {};
-    config.iceServers = config.iceServers || [];
+    // config.iceServers = config.iceServers || [];
 
     // make sure this only gets enabled in Google Chrome
     // EXPERIMENTAL FLAG, might get removed without notice
